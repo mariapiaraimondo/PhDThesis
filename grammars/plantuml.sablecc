@@ -1,0 +1,124 @@
+Package plantuml;
+
+Helpers
+	all = [0 .. 0xFFFF];
+	letter = ['a' .. 'z'] | ['A' .. 'Z'];
+	digit = ['0' .. '9'];
+	char = letter | digit | '_' | ':' | '-';
+	cr = 13;
+  	lf = 10;
+    opaquechar = [all - '$'];
+    opaque = '$' opaquechar* '$';
+    
+Tokens
+	colon = ':';
+	arrow = '->' | '-->';
+	l_d_ang = '<<';
+	r_d_ang = '>>';
+	note_msg_ang = '>';
+	msg_link = '..';
+	quot = '"';
+	slash = '/';
+	
+	startdiagram_tok = '@startuml';
+	enddiagram_tok = '@enduml';
+	participant_tok = 'participant';
+	stereotype_tok = 'Participant';
+	alias_tok = 'as';
+	note_tok = 'note';
+	left_tok = 'left';
+	right_tok = 'right';
+	over_tok = 'over';
+	end_tok = 'end';
+	char_seq = char (char)*;
+	opaqueexpr = opaque;
+	ign = lf | cr;
+  	new_line = cr | lf | cr lf;
+  	blank = ' '*;
+
+Ignored Tokens
+  	blank,
+  	ign;
+  	
+Productions
+	bcseqdiag =	
+		{simple} startdiagram_block item* enddiagram_block;
+		
+	startdiagram_block = 
+		{simple} startdiagram_tok new_line+;
+
+	enddiagram_block = 
+		{simple} enddiagram_tok;
+
+	item = 
+		{simple} item_core new_line+;
+
+	item_core =
+		{part} participant |
+		{part_note} participant_note |
+		{msg} message |
+		{msg_note} message_note |
+		{msg_note_link} msgnote_link;
+		
+	participant = 
+		{simple} participant_tok [quot1]:quot participant_name [quot2]:quot part_alias? stereotype?; 
+	
+	participant_name =
+		{simple} name;
+	
+	part_alias = 
+		{simple} alias_tok part_alias_name;
+	
+	part_alias_name =
+		{simple} name;
+	
+	stereotype = 
+		{simple} l_d_ang stereotype_tok r_d_ang;
+		
+	participant_note =
+		{simple} [starting]:note_tok position participant_ref [firstline]:new_line content [secondline]:new_line end_tok [ending]:note_tok;
+	
+	participant_ref =
+		{simple} name;
+	
+	position =
+		{left_position} left_tok |
+		{over_position} over_tok |
+		{right_position} right_tok;
+	
+	message =
+		{simple} sender arrow receiver colon message_name;
+	
+	sender =
+		{simple} name;
+		
+	receiver =
+		{simple} name;
+
+	message_note =
+		{simple} [starting]:note_tok position alias_note_block [firstline]:new_line content [secondline]:new_line end_tok [ending]:note_tok;
+	
+	alias_note_block =
+		{simple} alias_tok alias_note;
+	
+	alias_note =
+		{simple} name;
+		
+	message_name =
+		{simple} name;
+	
+	message_ref =
+		{simple} name;
+
+	msgnote_link =
+		{simple} [quot1]:note_msg_ang message_ref [quot2]:note_msg_ang msg_link note_ref;
+	
+	content =
+		{simple} opaqueexpr;
+
+	note_ref =
+		{simple} name;
+		
+	name =
+		{simple} char_seq;
+	
