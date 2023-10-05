@@ -1,0 +1,35 @@
+Protocol: WSNprotocol
+
+Types:
+	Agent A, B, bs;
+	Function pk, sk, hash;
+	Number empty;
+	Number idA, idB, idbs; #identificativi da ident()
+	Number Na, Nb, TSa, TSb;
+	
+Knowledge:
+	A: A, B, bs, inv(pk(A)), inv(sk(A)), idA, hash, pk, sk, empty;
+	B: B, A, bs, inv(pk(B)), inv(sk(B)), idB, hash, pk, sk, empty;
+	bs: bs, A, B, inv(pk(bs)), inv(sk(bs)), idbs, hash, pk, sk, empty;
+	
+Actions:
+	#registration
+	A -> bs: {idA,pk(A),Na}pk(bs)
+	bs -> A: {{idA,pk(A),idbs}inv(sk(bs)), Na}inv(sk(bs)), {hash(Na)}pk(A) 
+	
+	A -> B: empty
+	
+	B -> bs: {idB,pk(B),Nb}pk(bs)
+	bs -> B: {{idB,pk(B),idbs}inv(sk(bs)), Nb}inv(sk(bs)), {hash(Nb)}pk(B) 
+
+	B -> A: empty
+	
+	#mutual authentication
+	A -> B: idA, {idA,pk(A),idbs}inv(sk(bs)), {TSa}inv(sk(A))
+	B -> A: idB, {idB,pk(B),idbs}inv(sk(bs)), {TSb}inv(sk(B))
+	
+Goals:
+	{idA,pk(A),idbs}inv(sk(bs)) secret between A,bs
+	{idB,pk(B),idbs}inv(sk(bs)) secret between B,bs
+	B weakly authenticates A on TSa
+	A weakly authenticates B on TSb

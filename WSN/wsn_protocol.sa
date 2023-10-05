@@ -1,0 +1,148 @@
+@startuml
+participant "A:Node" as A <<Participant>>
+note over A
+$<<Participant>> transactions = {(
+id=ident(),
+senderPubKey=pk(), 
+senderAddress=A, 
+digitalSignature=inv(sk()), 
+inputAssets = {m3RE,m8RE}, 
+outputAssets = {m1SE,m7SE})}$
+end note
+
+participant "B:Node" as B <<Participant>>
+note over B 
+$<<Participant>> transactions = {(
+id=ident(),
+senderPubKey=pk(), 
+senderAddress=B, 
+digitalSignature=inv(sk()), 
+inputAssets = {m6RE,m7RE}, 
+outputAssets = {m4SE,m8SE})}$
+end note
+
+participant "bs:BaseStation" as bs <<Participant>>
+note over bs
+$<<Participant>> transactions = {(
+id=ident(),
+senderPubKey=pk(), 
+senderAddress=bs, 
+digitalSignature=inv(sk()), 
+inputAssets = {m1RE,m4RE}, 
+outputAssets = {m3SE,m6SE})}$
+end note
+
+A -> bs : requestCertI
+note left as N1
+$<<OutputAsset>> m1SE {
+data=[{id(A),pubkey(A),fresh(1)}pubkey(bs)],
+receiverAddress=bs}$
+end note
+>requestCertI> .. N1
+
+note right as N2
+$<<InputAsset>> m1RE {
+data = [{id(A),pubkey(A),fresh(1)}pubkey(bs)]}$
+end note
+>requestCertI> .. N2
+
+bs -> bs : generateCertI
+
+bs -> A : sendCertI
+note left as N3
+$<<InputAsset>> m3RE 
+{data = [{{id(A),pubkey(A),id(bs)}signkey(bs),fresh(1)}signkey(A),{hash(fresh(1))}pubkey(A)]}$
+end note
+>sendCertI> .. N3
+
+note right as N4
+$
+<<OutputAsset>> m3SE
+{data=[{{id(A),pubkey(A),id(bs)}signkey(bs),fresh(1)}signkey(A),{hash(fresh(1))}pubkey(A)], 
+receiverAddress=A,
+condition=[secret(A,bs,{id(A),pubkey(A),bs}signkey(bs))]}$
+end note
+>sendCertI> .. N4
+
+B -> bs : requestCertII
+
+note left as N5
+$
+<<OutputAsset>> m4SE 
+{data=[{id(B),pubkey(B),fresh(2)}pubkey(bs)], 
+receiverAddress=bs}
+$
+end note
+>requestCertII> .. N5
+
+note right as N6
+$
+<<InputAsset>> m4RE 
+{data = [{id(B),pubkey(B),fresh(2)}pubkey(bs)]}
+$
+end note
+>requestCertII> .. N6
+
+bs -> bs : generateCertII
+
+bs -> B : sendCertII
+
+note left as N7
+$
+<<InputAsset>> m6RE {
+data = [{{id(B),pubkey(B),id(bs)}signkey(bs), fresh(2)}signkey(B), {hash(fresh(2))}pubkey(B)]}
+$
+end note
+>sendCertII> .. N7
+
+note right as N8
+$
+<<OutputAsset>> m6SE {
+data=[{{id(B),pubkey(B),id(bs)}signkey(bs), fresh(2)}signkey(B), {hash(fresh(2))}pubkey(B)], 
+receiverAddress=B,
+condition=[secret(B,bs,{id(B),pubkey(B),bs}signkey(bs))]}
+$
+end note
+>sendCertII> .. N8
+
+A -> B : authenticationI
+
+note left as N9
+$
+<<OutputAsset>> m7SE  {
+data=[{id(A)}, {id(A),pubkey(A),id(bs)}signkey(bs), {fresh(3)}signkey(A)], 
+receiverAddress=B,
+condition=[weakauthentication(B,A,fresh(3))]}
+$
+end note
+>authenticationI> .. N9
+
+note right as N10
+$
+<<InputAsset>> m7RE  {
+data=[{id(A)}, {id(A),pubkey(A),id(bs)}signkey(bs), {fresh(3)}signkey(A)]}
+$
+end note
+>authenticationI> .. N10
+
+B -> A : authenticationII
+
+note left as N11
+$
+<<InputAsset>> m8RE  {
+data=[{id(B)}, {id(B),pubkey(B),id(bs)}signkey(bs), {fresh(4)}signkey(B)]}
+$
+end note
+>authenticationII> .. N11
+
+note right as N12
+$
+<<OutputAsset>> m8SE {
+data=[{id(B)}, {id(B),pubkey(B),id(bs)}signkey(bs), {fresh(4)}signkey(B)],
+receiverAddress=A,
+condition=[weakauthentication(A,B,fresh(4))]}
+$
+end note
+>authenticationII> .. N12
+
+@enduml
