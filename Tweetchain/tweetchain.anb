@@ -1,0 +1,51 @@
+Protocol TC_v022:
+
+Knowledge:
+		W : pk(x), pk(y), pk(r), root_HC_W, x, y, r;
+		x : pk(W), pk(y), pk(r), h(root_HC_W), root_HC_x, W, y, r;
+		y : pk(W), pk(x), pk(r), h(root_HC_W), root_HC_y, W, x, r;
+		r : pk(W), pk(x), pk(y), h(root_HC_W), root_HC_r, W, x, y;
+
+Actions:
+		[hel_twe] x -> W (TID_1_x): 
+				x . h(root_HC_x) . h(root_HC_W) . 'Hello' . W . TID_1_x . aenc{x . h(root_HC_x) . h(root_HC_W) . 'Hello' . W . TID_1_x}sk(x);
+
+		[welc_twe] W -> x:
+				W . h(h(root_HC_W)) . 'Welcome' . h(root_HC_x) . TID_1_x . x . aenc{W . h(h(root_HC_W)) . 'Welcome' . h(root_HC_x) . TID_1_x . x}sk(W);
+
+		/* Questo resta qui, altrimenti y non può inviare l'Hello*/
+		[HC_2_W_Out] W -> y:
+				W . h(h(root_HC_W)) . aenc{ W . h(h(root_HC_W)) }sk(W);
+
+
+		[hel_twe2] y -> W (TID_1_y): 
+				y . h(root_HC_y) . h(h(root_HC_W)) . 'Hello' . W . TID_1_y . aenc{y . h(root_HC_y) . h(h(root_HC_W)) . 'Hello' . W . TID_1_y}sk(y);
+				
+		[welc_twe2] W -> y:
+				W . h(h(h(root_HC_W))) . 'Welcome' . h(root_HC_y) . TID_1_y . y . aenc{W . h(h(h(root_HC_W))) . 'Welcome' . h(root_HC_y) . TID_1_y . y}sk(W);
+
+
+		/* Questo resta qui, altrimenti r non può inviare l'Hello*/
+		[HC_3_W_Out2] W -> r:
+				W . h(h(h(root_HC_W))) . aenc{ W . h(h(h(root_HC_W))) }sk(W);
+
+
+		[hel_twe3] r -> W (TID_1_r): 
+				r . h(root_HC_r) . h(h(h(root_HC_W))) . 'Hello' . W . TID_1_r . aenc{r . h(root_HC_r) . h(h(h(root_HC_W))) . 'Hello' . W . TID_1_r}sk(r);
+
+		[welc_twe3] W -> r:
+				W . h(h(h(h(root_HC_W)))) . 'Welcome' . h(root_HC_r) . TID_1_r . r . aenc{W . h(h(h(h(root_HC_W)))) . 'Welcome' . h(root_HC_r) . TID_1_r . r}sk(W);
+
+		/* Dopo che ANCHE y si è registrato, x lo mette a conoscenza del suo TID*/
+		[HC_1_x_Out] x -> y:
+				x . h(root_HC_x) . TID_1_x . aenc{ x . h(root_HC_x) . TID_1_x }sk(x);
+
+
+		[foll_req] x -> y:
+				x . y . aenc{'follow_please' . TID_1_x}pk(y) . aenc{x . y . aenc{'follow_please' . TID_1_x}pk(y) }sk(x);
+
+		[req_acc] y -> x:
+				y . h(h(root_HC_y)) . 'Follow_Welcome' . h(root_HC_x) . TID_1_x . x . aenc{y . h(h(root_HC_y)) . 'Follow_Welcome' . h(root_HC_x) . TID_1_x . x}sk(y);
+
+
+end
