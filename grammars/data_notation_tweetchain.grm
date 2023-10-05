@@ -1,0 +1,50 @@
+Package bcprofile.tweetchain;
+
+Helpers
+nlw = 0x0D 0x0A;
+nll = 0x0A;
+tab1 = '\t';
+tab2 = 0x09;
+space = ' ';
+ignore_one = '\r';
+	
+Tokens
+letter = ['a' .. 'z'];
+digit = ['0' .. '9'];
+blank = (space | tab1 | tab2 | nlw | nll | ignore_one)+;
+openmessage = '[';
+closemessage = ']';
+sep = ',';
+hashsymbol = '#';
+hello_tok = 'Hello';
+welcome_tok = 'Welcome';
+ok_tok = '1';
+ko_tok = '0';
+
+Ignored Tokens
+blank;
+
+Productions
+data = openmessage message closemessage;
+message = 	{hello_msg} hello | 
+			{welcome_msg} welcome |
+			{ttweet_msg} ttweet |
+			{ttweet_conf} ttweet_confirmation;
+hello = hash_x sep hash_w sep hello_tok;
+welcome = hash_w sep welcome_tok sep hash_x sep tid_x;
+ttweet = hash_x sep tid_y sep content;
+ttweet_confirmation = hash_vi sep tid_x sep status sep tid_y sep content sep r;
+hash_x = hash;
+hash_w = hash;
+hash_vi = hash;
+tid_x = tid;
+tid_y = tid;
+status =	{ok} ok_tok |
+			{ko} ko_tok;
+r = char*;
+tid = digit*;
+hash = hashsymbol hashstring;
+hashstring = char*;
+identifier = letter str;
+content = char*;
+char = {num} digit | {lett} letter;
