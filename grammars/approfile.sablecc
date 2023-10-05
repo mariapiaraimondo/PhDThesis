@@ -1,0 +1,161 @@
+Package approfile;
+
+Helpers
+	all = [0 .. 0xFFFF];
+	letter = ['a' .. 'z'] | ['A' .. 'Z'];
+	digit = ['0' .. '9'];
+	char = letter | digit | '_' | ':' | '-';
+	cr = 13;
+  	lf = 10;
+  	delimchar = ['$' + ['[' + ']']];
+    opaquechar = [all - delimchar];
+	opaque = '[' opaquechar* ']';
+    
+Tokens
+	comma = ',';
+	equals = '=';
+	open_round = '(';
+	close_round = ')';
+	open_curly = '{';
+	close_curly = '}';
+	participant_stereotype = '<<Participant>>';
+	inputasset_stereotype = '<<InputAsset>>';
+	outputasset_stereotype = '<<OutputAsset>>';
+	id_taggedtok = 'id';
+	senderpubkey_taggedtok = 'senderPubKey';
+	senderaddress_taggedtok = 'senderAddress';
+	digitalsignature_taggedtok = 'digitalSignature';
+	transaction_taggedtok = 'transactions';
+	inputassets_taggedtok = 'inputAssets';
+	outputassets_taggedtok = 'outputAssets';
+	data_taggedtok = 'data';
+	receiver_taggedtok = 'receiverAddress';
+	provenance_taggedtok = 'provenance';
+	condition_taggedtok = 'condition';
+	fresh_tok = 'fresh';
+	authentic_tok = 'authentic';
+	confidential_tok = 'confidential';
+	char_seq = char (char)*;
+	opaqueexpr = opaque;
+	ign = lf | cr;
+  	new_line = cr | lf | cr lf;
+  	blank = ' '*;
+
+Ignored Tokens
+  	blank,
+  	ign, new_line;
+  	
+Productions
+	stereotype =
+		{participant} participant_st |
+		{input} inputasset_st |
+		{output} outputasset_st;
+	
+	participant_st =
+		{simple} participant_stereotype transactions;
+		
+	transactions =
+		{simple} transaction_taggedtok equals open_curly transaction_list close_curly;
+	
+	transaction_list =
+		{simple} transaction |
+		{list} transaction comma transaction_list;
+
+	transaction =
+		{simple} open_round 
+				id_clause [c0]:comma 
+				pubkey_clause [c1]:comma 
+				sendadd_clause [c2]:comma 
+				digitalsig_clause [c3]:comma 
+				input_assets_clause [c4]:comma 
+				output_assets_clause close_round;
+
+	id_clause =
+		{simple} id_taggedtok equals id_name;
+
+	pubkey_clause =
+		{simple} senderpubkey_taggedtok equals senderpubkey_name;
+		
+	sendadd_clause =
+		{simple} senderaddress_taggedtok equals senderaddress_name;
+
+	digitalsig_clause =
+		{simple} digitalsignature_taggedtok equals digitalsignature_name;
+
+	input_assets_clause =
+		{simple} inputassets_taggedtok equals [co]:open_curly inassets_list [cc]:close_curly;
+
+	output_assets_clause =
+		{simple} outputassets_taggedtok equals [co]:open_curly outassets_list [cc]:close_curly;
+
+	id_name =
+		{simple} name |
+		{func} func_name;
+
+	senderpubkey_name =
+		{simple} name |
+		{func} func_name;
+
+	senderaddress_name =
+		{simple} name |
+		{func} func_name;
+
+	digitalsignature_name =
+		{digisimple} name |
+		{digifunc} func_name;
+
+	inassets_list =
+		{simple} input_asset_name |
+		{list} input_asset_name comma inassets_list;
+	
+	outassets_list =
+		{simple} output_asset_name |
+		{list} output_asset_name comma outassets_list;
+
+	input_asset_name =
+		{simple} name;
+
+	output_asset_name =
+		{simple} name;
+	
+	inputasset_st = 
+		{simple} inputasset_stereotype asset_ref open_curly 
+		data_clause provenance_add_clause? close_curly;
+	
+	provenance_add_clause = 
+		{simple} comma provenance_taggedtok equals transaction_ref;
+	
+	transaction_ref =
+		{simple} name;
+
+	outputasset_st =
+		{simple} outputasset_stereotype asset_ref open_curly 
+		data_clause [c0]:comma rec_address_clause condition_clause? close_curly;
+	
+	asset_ref = 
+		{simple} name;
+	
+	data_clause =
+		{simple} data_taggedtok equals data_payload;
+		
+	data_payload =
+		{simple} opaqueexpr;
+	
+	rec_address_clause =
+		{simple} receiver_taggedtok equals participant_ref;
+
+	condition_clause =
+		{simple} comma condition_taggedtok equals condition_payload;
+	
+	condition_payload =
+		{simple} opaqueexpr;
+
+	participant_ref =
+		{simple} name;
+
+	name =
+		{simple} char_seq;
+
+	func_name =
+		{simple} name open_round close_round |
+		{nested} name open_round func_name close_round;

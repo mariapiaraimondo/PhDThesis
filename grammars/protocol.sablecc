@@ -1,0 +1,108 @@
+Package protocol;
+
+Helpers
+	all = [0 .. 0xFFFF];
+	letter = ['a' .. 'z'] | ['A' .. 'Z'];
+	digit = ['0' .. '9'];
+	char = letter | digit | '_' | ':' | '-';
+	cr = 13;
+  	lf = 10;
+    
+Tokens
+	comma = ',';
+	open_round = '(';
+	close_round = ')';
+	open_square = '[';
+	close_square = ']';
+	open_curly = '{';
+	close_curly = '}';
+	fresh_tok = 'fresh';
+	id_tok = 'id';
+	empty_tok = 'empty()';
+	pubkey_tok = 'pubkey';
+	hash_tok = 'hash';
+	signature_tok = 'signkey';
+	weakauth_tok = 'weakauthentication';
+	secret_tok = 'secret';
+	digit_seq = digit (digit)*;
+	char_seq = char (char)*;
+	ign = lf | cr;
+  	new_line = cr | lf | cr lf;
+  	blank = ' '*;
+
+Ignored Tokens
+  	blank,
+  	ign, new_line;
+  	
+Productions
+	data_condition =
+		{data} data_clause |
+		{condition} condition_clause;
+
+	data_clause = 
+		{simple} data_expression |
+		{list} data_expression comma data_clause;
+	
+	data_expression =
+		{list} open_curly atomic_list close_curly data_function?;
+	
+	atomic_list = 
+		{simple} argument |
+		{list} argument comma atomic_list;
+		
+	argument =
+		{variable} name |
+		{function} function |
+		{recursive} data_expression;
+	
+	function =
+		{empty} empty_tok |
+		{hash} hash_clause |
+		{id} id_clause |
+		{fresh} fresh_clause |
+		{pubkey} pubkey_clause |
+		{signature} signature_clause;
+	
+	data_function =
+		{pubkey} pubkey_clause |
+		{signature} signature_clause;
+
+	id_clause =
+		{simple} id_tok open_round argument close_round;
+
+	fresh_clause =
+		{simple} fresh_tok open_round number close_round;
+
+	hash_clause =
+		{simple} hash_tok open_round argument close_round;
+
+	pubkey_clause =
+		{simple} pubkey_tok open_round argument close_round;
+		
+	signature_clause =
+		{simple} signature_tok open_round argument close_round;
+
+	condition_clause = 
+		{secret} secret_clause |
+		{wauth} weakauth_clause;
+	
+	secret_clause =
+		{simple} secret_tok open_round [s0]:secret_peer [c0]:comma [s1]:secret_peer [c1]:comma argument close_round;
+
+	weakauth_clause =
+		{simple} weakauth_tok open_round weak_actor [c0]:comma weak_subject [c1]:comma argument close_round;
+
+	secret_peer =
+		{simple} name;
+
+	weak_actor =
+		{simple} name;
+
+	weak_subject =
+		{simple} name;
+
+	number =
+		{simple} digit_seq;
+		
+	name =
+		{simple} char_seq;
